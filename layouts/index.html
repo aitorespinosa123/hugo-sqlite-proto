@@ -1,3 +1,4 @@
+
 {{ define "main" }}
 <h1>{{ site.Title }}</h1>
 {{ .Content }}
@@ -13,7 +14,7 @@
 
 <h2>Etiquetas <span class="meta">(agregadas con SQL en build)</span></h2>
 <p>
-  {{ range hugo.Data.tags }}
+  {{ range .Site.Data.tags }}
   <a class="tag" href="{{ printf "tags/%s/" (.tag | urlize) | relURL }}">{{ .tag }} <b>{{ .total }}</b></a>
   {{ else }}
   <span class="meta">Sin datos: ejecuta <code>make index</code>.</span>
