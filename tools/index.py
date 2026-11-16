@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """tools/index.py — content/**/*.md → SQLite (solo en build) → JSON estático.
 
@@ -14,9 +15,6 @@ funciones puras para parsear; los efectos (disco, SQL) quedan al final.
 
 Límites (a propósito, KISS): front matter YAML con pares `clave: valor` y
 listas en línea `tags: [a, b]`. Nada de TOML (+++) ni listas multilínea.
-
-Docs: https://docs.python.org/3/library/sqlite3.html
-      https://www.sqlite.org/json1.html
 """
 import json
 import re
@@ -45,7 +43,7 @@ CREATE TABLE tags (
 );
 """
 
-# SQL produce directamente el JSON (extensión json1 de SQLite).
+# SQL produce directamente el JSON.
 Q_SEARCH = """
 SELECT json_group_array(json_object(
   'url', url, 'title', title, 'date', date, 'summary', summary,
@@ -69,7 +67,7 @@ FROM (
 # --- funciones puras ---------------------------------------------------------
 
 def split_front_matter(text):
-    """'---\\nclave: valor\\n---\\ncuerpo' → (bloque_yaml, cuerpo)."""
+    """Separa el front matter YAML del contenido Markdown."""
     m = re.match(r"\A---\r?\n(.*?)\r?\n---\r?\n?(.*)\Z", text, re.S)
     return (m.group(1), m.group(2)) if m else ("", text)
 
@@ -80,7 +78,7 @@ def parse_scalar(raw):
         return [parse_scalar(x) for x in v[1:-1].split(",") if x.strip()]
     if v in ("true", "false"):
         return v == "true"
-    return re.sub(r"^(['\"])(.*)\1$", r"\2", v)  # quita comillas simétricas
+    return re.sub(r"^(['\"])(.*)\1$", r"\2", v)
 
 
 def parse_meta(block):
@@ -89,14 +87,14 @@ def parse_meta(block):
     return {k.strip(): parse_scalar(v) for k, v in pairs}
 
 
-# (patrón, reemplazo) aplicados en orden: Markdown → texto plano
+# Markdown → texto plano
 CLEANERS = [
-    (r"```.*?```", " "),                              # bloques de código
-    (r"`([^`]*)`", r"\1"),                            # código en línea
-    (r"!?\[([^\]]*)\]\([^)]*\)", r"\1"),              # enlaces/imágenes → texto
-    (r"^[ \t]{0,3}(?:#{1,6}|>|[-*+]|\d+\.)[ \t]+", ""),  # marcas de bloque
-    (r"\*{1,3}", ""),                                 # énfasis
-    (r"\s+", " "),                                    # espacios
+    (r"```.*?```", " "),
+    (r"`([^`]*)`", r"\1"),
+    (r"!?\[([^\]]*)\]\([^)]*\)", r"\1"),
+    (r"^[ \t]{0,3}(?:#{1,6}|>|[-*+]|\d+\.)[ \t]+", ""),
+    (r"\*{1,3}", ""),
+    (r"\s+", " "),
 ]
 
 
@@ -110,7 +108,7 @@ def shorten(text, n=160):
 
 
 def url_of(path):
-    """content/posts/x.md → /posts/x/  (como hace Hugo)."""
+    """content/posts/x.md → /posts/x/"""
     parts = path.relative_to(CONTENT).with_suffix("").parts
     parts = parts[:-1] if parts[-1] == "index" else parts
     return "/" + "/".join(parts) + "/"
@@ -132,9 +130,12 @@ def read_page(path):
     }
 
 
-def read_all():
-    files = (p for p in sorted(CONTENT.rglob("*.md")) if p.name != "_index.md")
-    return [page for page in map(read_page, files) if not page["draft"]]
+# EJERCICIO 2: permitir incluir borradores con --drafts
+def read_all(include_drafts=False):
+    files = (p for p in sorted(CONTENT.rglob("*.md"))
+             if p.name != "_index.md")
+    return [page for page in map(read_page, files)
+            if include_drafts or not page["draft"]]
 
 
 # --- efectos: disco y SQL ----------------------------------------------------
@@ -162,11 +163,15 @@ def export(con, query, out):
 def main():
     if not CONTENT.is_dir():
         sys.exit("index.py: ejecútalo desde la raíz del repo (make index)")
-    pages = read_all()
+
+    # EJERCICIO 2: comprobar si se ha utilizado --drafts
+    pages = read_all(include_drafts="--drafts" in sys.argv[1:])
+
     con = build_db(pages)
     export(con, Q_SEARCH, OUT_SEARCH)
     export(con, Q_TAGS, OUT_TAGS)
     con.close()
+
     print(f"index: {len(pages)} páginas → {OUT_SEARCH}, {OUT_TAGS}")
 
 
