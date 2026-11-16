@@ -145,3 +145,70 @@ git log --format='%h %ad %s' --date=iso | head -20
 ```
 
 "Recuerda ... KISS!" :-)
+
+
+
+---
+
+## Trabajo realizado - Aitor Espinosa (2º ASIR)
+
+### Preparación del entorno
+
+He utilizado Ubuntu con Python 3.8 y Hugo 0.68.3.
+
+Para que el proyecto funcionara con mi versión de Hugo,
+he renombrado hugo.toml a config.toml y he adaptado
+la plantilla layouts/index.html para utilizar .Site.Data.tags.
+
+He comprobado que make check, make build y make serve
+funcionan correctamente.
+
+### Ejercicio 1 - Nueva publicación con SQL
+
+He creado el archivo content/posts/sql-en-mi-web.md
+con la etiqueta tags: [sql].
+
+Al ejecutar make check, el indexador pasó de 4 a 5
+páginas. También comprobé que apareció la etiqueta
+sql con contador 1 en la página principal.
+
+Esto demuestra que las etiquetas se actualizan
+automáticamente al generar el índice.
+
+### Ejercicio 2 - Incluir borradores en la búsqueda
+
+He modificado tools/index.py para añadir la opción
+--drafts.
+
+Antes, el indexador excluía siempre los borradores.
+Ahora podemos elegir si queremos incluirlos.
+
+Comprobaciones realizadas:
+
+- python3 tools/index.py: 5 páginas indexadas.
+- python3 tools/index.py --drafts: 6 páginas indexadas.
+
+Para comprobarlo en el navegador, ejecuté el
+indexador con --drafts y después hugo server -D.
+
+Al buscar "secreto" apareció la publicación
+"Esto es un borrador".
+
+Normalmente los borradores siguen excluidos.
+La opción --drafts permite incluirlos cuando
+necesitamos probarlos.
+
+### Funcionamiento de Hugo y SQLite
+
+El proceso funciona de la siguiente manera:
+
+1. Los contenidos se escriben en archivos Markdown.
+2. tools/index.py lee los archivos y sus etiquetas.
+3. SQLite organiza la información y cuenta las etiquetas.
+4. Se generan static/search.json y data/tags.json.
+5. Hugo utiliza esos datos para construir la web.
+6. El navegador realiza las búsquedas utilizando JavaScript.
+
+SQLite solo se utiliza durante la construcción.
+La web final funciona con archivos estáticos,
+sin necesidad de una base de datos en el servidor.
