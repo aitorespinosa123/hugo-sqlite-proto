@@ -212,3 +212,25 @@ El proceso funciona de la siguiente manera:
 SQLite solo se utiliza durante la construcción.
 La web final funciona con archivos estáticos,
 sin necesidad de una base de datos en el servidor.
+
+
+
+
+### Aportación propia - Comando serve-drafts
+
+He añadido un nuevo comando al Makefile para facilitar las pruebas con borradores:
+
+```bash
+make serve-drafts
+```
+
+Este comando ejecuta automáticamente dos operaciones:
+
+1. `python3 tools/index.py --drafts`: incluye los borradores en el índice de SQLite.
+2. `hugo server -D --bind 0.0.0.0 --port 1313`: inicia Hugo mostrando también los borradores.
+
+De esta forma puedo comprobar los borradores y buscarlos desde el navegador utilizando un único comando.
+
+He probado su funcionamiento buscando "secreto" y comprobando que aparece la publicación "Esto es un borrador".
+
+Para generar la web definitiva se sigue utilizando `make build`, que excluye los borradores.
