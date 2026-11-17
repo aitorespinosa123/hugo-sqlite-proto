@@ -1,6 +1,7 @@
+
 # Hugo + SQLite (solo en build). Cada objetivo hace una cosa.
 .DEFAULT_GOAL := help
-.PHONY: index build serve check clean check-invites help
+.PHONY: index build serve serve-drafts check clean check-invites help
 
 index:   ## Markdown → SQLite → static/search.json + data/tags.json
 	python3 tools/index.py
@@ -10,6 +11,11 @@ build: index   ## Genera el sitio estático en public/ (esto es lo que se despli
 
 serve: index   ## Servidor local con recarga: http://localhost:1313/
 	hugo server
+
+# APORTACION PROPIA: incluir borradores en Hugo y en la búsqueda
+serve-drafts:   ## Servidor local con borradores incluidos en SQLite
+	python3 tools/index.py --drafts
+	hugo server -D --bind 0.0.0.0 --port 1313
 
 check: index   ## Valida que los JSON generados son JSON de verdad
 	python3 -m json.tool static/search.json > /dev/null
