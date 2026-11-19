@@ -42,6 +42,11 @@ class TestEtiquetas(unittest.TestCase):
         self.assertEqual(etiquetas_json(["sql", "Árbol B"]),
                          '{"sql":"sql","\\u00c1rbol B":"arbol-b"}')
 
+    def test_etiqueta_numerica(self):
+        import json
+        esperado = {chr(0xFE0E) + "2026": "a3a10ebe2ba87b81b32702fce0637e74"}
+        self.assertEqual(json.loads(etiquetas_json(["2026"])), esperado)
+
     def test_sin_etiquetas(self):
         self.assertEqual(etiquetas_json([]), "[]")
 

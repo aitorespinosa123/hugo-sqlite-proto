@@ -22,6 +22,8 @@ Uso:
   python3 tools/migrar.py --destino ~/chyrp-datos/copia.sqlite
 """
 import argparse
+import hashlib
+import hashlib
 import json
 import re
 import sqlite3
@@ -60,7 +62,13 @@ def etiquetas_json(nombres):
     """
     if not nombres:
         return "[]"
-    asociacion = {nombre: slugify(nombre) for nombre in nombres}
+    asociacion = {}
+    for nombre in nombres:
+        nombre = str(nombre)
+        if nombre.isdecimal():
+            nombre = chr(0xFE0E) + nombre
+        slug = slugify(nombre)
+        asociacion[nombre] = slug if re.search(r"[^0-9-]", slug) else hashlib.md5(nombre.encode("utf-8")).hexdigest()
     # PHP escribe "/" como "\/" y Python no: igualamos los bytes.
     return json.dumps(asociacion, separators=(",", ":")).replace("/", "\\/")
 
