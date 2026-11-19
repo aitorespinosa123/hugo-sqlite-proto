@@ -234,3 +234,38 @@ De esta forma puedo comprobar los borradores y buscarlos desde el navegador util
 He probado su funcionamiento buscando "secreto" y comprobando que aparece la publicación "Esto es un borrador".
 
 Para generar la web definitiva se sigue utilizando `make build`, que excluye los borradores.
+
+## P1.2 - Migracion de Hugo a Chyrp Lite
+
+En la rama chyrp-lite se realiza una migracion de las entradas Markdown
+de Hugo a una base de datos SQLite de Chyrp Lite.
+
+### Archivos principales
+
+- tools/migrar.py: script de migracion.
+- tools/test_migrar.py: pruebas automaticas.
+- tools/migrar_experimento.py: experimento con transaccion y rollback.
+- tools/migrar_sin_transaccion.py: experimento sin transaccion.
+- Makefile: comandos de ejecucion.
+
+### Como ejecutar
+
+Pruebas automaticas: make test
+
+Simulacro: make migrar DESTINO=/ruta/copia.sqlite SIMULACRO=1
+
+Migracion real: make migrar DESTINO=/ruta/copia.sqlite
+
+El destino debe ser una copia de una base de datos SQLite ya inicializada
+por Chyrp Lite. La migracion evita duplicar las entradas existentes.
+
+### Comprobaciones
+
+- Simulacro, migracion real y repeticion sin duplicados.
+- Verificacion de entradas, borradores y etiquetas en SQLite y navegador.
+- Comparacion de transacciones con rollback y sin transaccion.
+- Correccion de etiquetas numericas.
+- Las 12 pruebas automaticas terminan correctamente.
+
+El informe de la practica se encuentra en P1.2-Espinosa.md.
+
